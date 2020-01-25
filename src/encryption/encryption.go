@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"strings"
 	"os/exec"
-	"os/user"
 	"io/ioutil"
 	"path/filepath"
 	"encoding/base64"
@@ -18,6 +17,7 @@ import (
 	"crypto/cipher"
 	"crypto/aes"
 	"crypto/md5"
+	i "../system"
 )
 
 // Check
@@ -79,17 +79,12 @@ func DecryptFile(file string, passphrase string) string {
 
 // Create 'decryptor.bat' file
 func CreateDecryptor(message string) {
-	file, err := filepath.Abs(os.Args[0])
-	check(err)
-	user, err := user.Current()
-	check(err)
-	ioutil.WriteFile(user.HomeDir + "\\Desktop\\decryptor.bat", []byte("@echo off \ncolor E \ntitle Decrypt0r \necho " + message + " \nset /p password=\"Enter password: \" \n" + file + " --decrypt %password% \nif %errorlevel% EQU 1 ( echo Wrong password! \ncolor CF ) ELSE ( echo Password is correct! & color D ) \npause >NUL \nexit"), 0644)
-    exec.Command("cmd.exe", "/C start " + user.HomeDir + "\\Desktop\\decryptor.bat").Run()
+	dir, file := filepath.Split( i.ExecutableLocation() )
+	ioutil.WriteFile(i.GetUserDir() + "\\Desktop\\decryptor.bat", []byte("@echo off \ncolor E \ntitle Decrypt0r \necho " + message + " \nset /p password=\"Enter password: \" \ncd " + dir + " \nstart " + file + " --decrypt %password% \nexit"), 0644)
+    exec.Command("cmd.exe", "/C start " + i.GetUserDir() + "\\Desktop\\decryptor.bat").Run()
 }
 
-// Remove 'decryptor.bat' file
+// Delete decryptor.bat' file
 func DeleteDecryptor() {
-	user, err := user.Current()
-	check(err)
-	os.Remove(user.HomeDir + "\\Desktop\\decryptor.bat")
+	os.Remove(i.GetUserDir() + "\\Desktop\\decryptor.bat")	
 }
